@@ -6,7 +6,7 @@ import matplotlib.image as mpimg
 # 1. BACA GAMBAR
 # ========================
 # Ganti "trial.bmp" dengan file gambar yang ingin digunakan
-img = mpimg.imread("trial.bmp")  
+img = mpimg.imread("Tugas 3/trial.bmp")  
 
 # ========================
 # 2. TENTUKAN KOORDINAT CROPPING
