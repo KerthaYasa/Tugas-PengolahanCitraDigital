@@ -1,5 +1,5 @@
 def read_bmp_info(kucing8x8):
-    with open(kucing8x8, "rb") as f:
+    with open("Tugas 1/kucing8x8.bmp", "rb") as f:
         # Resolusi
         f.seek(18)
         width = int.from_bytes(f.read(4), "little")
