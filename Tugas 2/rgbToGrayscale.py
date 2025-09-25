@@ -6,7 +6,7 @@ import matplotlib.image as mpimg
 # 1. BACA GAMBAR
 # ===============================
 # Ganti dengan file gambar BMP/PNG/JPG yang kamu punya
-img = mpimg.imread("trial.bmp")  
+img = mpimg.imread("Tugas 2/trial.bmp")  
 
 # Pastikan gambar dalam range 0-255 (jika float [0,1], kalikan 255)
 if img.dtype == np.float32 or img.dtype == np.float64:

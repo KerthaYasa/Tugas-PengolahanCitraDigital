@@ -1,81 +1,75 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
+import matplotlib.image as mpimg
+import numpy as np
 
-# ================================
-# BACA BMP GRAYSCALE 8-BIT
-# ================================
-def read_bmp_numpy(filename):
-    img = Image.open(filename).convert("L")  # konversi ke grayscale (L = 8-bit)
-    pixels = np.array(img, dtype=np.uint8)
-    return img, pixels
+# ============================
+# Input gambar dari folder
+# ============================
+img = mpimg.imread("Tugas 2/kucing8x8.bmp")  # ganti sesuai nama file
 
-# ================================
-# TULIS BMP GRAYSCALE 8-BIT
-# ================================
-def write_bmp_numpy(filename, pixels):
-    img = Image.fromarray(pixels.astype(np.uint8), mode="L")
-    img.save(filename)
+# Jika gambar RGB, ambil rata-rata channel
+if img.ndim == 3:
+    gray = img.mean(axis=2)
+else:
+    gray = img
 
-# ================================
-# NEGASI GRAYSCALE
-# ================================
-def negate_grayscale_numpy(pixels, Kmax=255):
-    """Ko = Kmax - Ki"""
-    return Kmax - pixels
+# Skala ke 0–255 jika perlu
+if gray.max() <= 1.0:
+    gray = gray * 255
 
-# ================================
-# HISTOGRAM
-# ================================
-def plot_histogram_numpy(ax, pixels, title="Histogram", color='gray'):
-    ax.hist(pixels.ravel(), bins=256, range=(0,255), color=color, edgecolor='black')
-    ax.set_title(title)
-    ax.set_xlabel("Nilai Intensitas (0-255)")
-    ax.set_ylabel("Frekuensi")
+gray = gray.astype(int)
 
-# ================================
-# MAIN
-# ================================
-input_file = "gray_kucing8x8.bmp"   # ganti dengan file kamu
-output_file = "negatif_" + input_file
+# ============================
+# Konstanta untuk negatif
+# ============================
+Kmax = 255
 
-# baca gambar
-img, pixels = read_bmp_numpy(input_file)
+# ============================
+# Terapkan rumus negatif: Ko = Kmax - Ki
+# ============================
+negative_gray = Kmax - gray
 
-# tampilkan nilai awal f(x,y)
-print("Nilai f(x,y) awal:")
-print(pixels)
+# ============================
+# Flatten untuk histogram
+# ============================
+flat_before = gray.flatten()
+flat_after  = negative_gray.flatten()
 
-# negasi dengan rumus Ko = 255 - Ki
-neg_pixels = negate_grayscale_numpy(pixels, Kmax=255)
+# ============================
+# Tampilkan gambar & histogram
+# ============================
+fig, axes = plt.subplots(2, 2, figsize=(10,8))
 
-# tampilkan nilai akhir f(x,y)
-print("\nNilai f(x,y) akhir setelah negasi:")
-print(neg_pixels)
+# Gambar asli
+axes[0,0].imshow(gray, cmap="gray", vmin=0, vmax=255)
+axes[0,0].set_title("Gambar Asli (Grayscale)")
+axes[0,0].axis("off")
 
-# ================================
-# TAMPILKAN GAMBAR ASLI & NEGATIF
-# ================================
-fig, axs = plt.subplots(1,2, figsize=(10,5))
-axs[0].imshow(pixels, cmap='gray', vmin=0, vmax=255)
-axs[0].set_title("Gambar Asli")
-axs[0].axis("off")
+# Histogram asli
+axes[0,1].bar(range(256), [np.count_nonzero(flat_before == i) for i in range(256)], color="blue")
+axes[0,1].set_title("Histogram Asli")
+axes[0,1].set_xlabel("Tingkat Warna (0–255)")
+axes[0,1].set_ylabel("Frekuensi")
 
-axs[1].imshow(neg_pixels, cmap='gray', vmin=0, vmax=255)
-axs[1].set_title("Gambar Negatif")
-axs[1].axis("off")
+# Gambar negatif
+axes[1,0].imshow(negative_gray, cmap="gray", vmin=0, vmax=255)
+axes[1,0].set_title("Gambar Negatif")
+axes[1,0].axis("off")
 
-plt.show()
+# Histogram negatif
+axes[1,1].bar(range(256), [np.count_nonzero(flat_after == i) for i in range(256)], color="orange")
+axes[1,1].set_title("Histogram Negatif")
+axes[1,1].set_xlabel("Tingkat Warna (0–255)")
+axes[1,1].set_ylabel("Frekuensi")
 
-# ================================
-# TAMPILKAN HISTOGRAM ASLI & NEGATIF
-# ================================
-fig, axs = plt.subplots(1,2, figsize=(12,4))
-plot_histogram_numpy(axs[0], pixels, "Histogram Asli", color="blue")
-plot_histogram_numpy(axs[1], neg_pixels, "Histogram Negatif", color="red")
 plt.tight_layout()
 plt.show()
 
-# simpan gambar negatif
-write_bmp_numpy(output_file, neg_pixels)
-print(f"\nGambar negatif disimpan sebagai: {output_file}")
+# ============================
+# Cetak nilai grayscale
+# ============================
+print("Nilai Grayscale Asli:")
+print(gray)
+
+print("\nNilai Grayscale Setelah Negatif:")
+print(negative_gray)
