@@ -9,7 +9,7 @@ def read_bmp_info(kucing8x8):
         f.seek(28)
         bit_depth = int.from_bytes(f.read(2), "little")
 
-        # Offset data piksel
+        # Offset data piksel posisi awal data pixel
         f.seek(10)
         data_offset = int.from_bytes(f.read(4), "little")
 

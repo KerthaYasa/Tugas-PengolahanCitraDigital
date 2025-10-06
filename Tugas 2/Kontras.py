@@ -1,82 +1,131 @@
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import numpy as np
 
-# ============================
-# Input gambar dari folder
-# ============================
-img = mpimg.imread("Tugas 2/kucing8x8.bmp")  # ganti sesuai nama file
+# =========================
+# Fungsi bantu
+# =========================
+def batas_nilai(nilai):
+    """Pastikan nilai tetap dalam rentang 0–255."""
+    if nilai < 0:
+        return 0
+    elif nilai > 255:
+        return 255
+    else:
+        return int(nilai)
 
-# Jika gambar RGB, ambil rata-rata channel
-if img.ndim == 3:
-    gray = img.mean(axis=2)
-else:
-    gray = img
+def konversi_ke_grayscale(gambar):
+    """Ubah gambar RGB menjadi grayscale tanpa numpy."""
+    if len(gambar.shape) == 2:
+        return gambar.tolist()
 
-# Skala ke 0–255 jika perlu
-if gray.max() <= 1.0:
-    gray = gray * 255
+    tinggi, lebar, _ = gambar.shape
+    hasil = []
+    for y in range(tinggi):
+        baris = []
+        for x in range(lebar):
+            r, g, b = gambar[y][x][:3]
+            if r <= 1 and g <= 1 and b <= 1:
+                gray = int((r + g + b) / 3 * 255)
+            else:
+                gray = int((r + g + b) / 3)
+            baris.append(gray)
+        hasil.append(baris)
+    return hasil
 
-gray = gray.astype(int)
+def ubah_kontras(gambar, G, P):
+    """Menerapkan rumus kontras: Ko = G * (Ki - P) + P"""
+    tinggi = len(gambar)
+    lebar = len(gambar[0])
+    hasil = []
 
-# ============================
-# Konstanta peningkatan kontras
-# ============================
-G = 3   # koefisien penguatan kontras, >1 untuk kontras lebih tinggi
-P = 180   # pusat pengontrasan
+    for y in range(tinggi):
+        baris = []
+        for x in range(lebar):
+            Ki = gambar[y][x]
+            Ko = G * (Ki - P) + P
+            Ko = batas_nilai(Ko)
+            baris.append(Ko)
+        hasil.append(baris)
+    return hasil
 
-# ============================
-# Fungsi clip agar tetap 0–255
-# ============================
-def clip(value):
-    return max(0, min(255, value))
+def hitung_histogram(gambar):
+    """Hitung frekuensi kemunculan tiap intensitas (0–255)."""
+    histogram = [0] * 256
+    for baris in gambar:
+        for piksel in baris:
+            histogram[int(piksel)] += 1
+    return histogram
 
-# ============================
-# Terapkan rumus kontras: Ko = G*(Ki-P)+P
-# ============================
-contrast_gray = np.vectorize(lambda v: clip(G * (v - P) + P))(gray)
+def tampilkan(gambar_asli, gambar_kontras, hist_asli, hist_kontras, G, P):
+    """Tampilkan hasil gambar dan histogram."""
+    plt.figure(figsize=(10, 6))
 
-# ============================
-# Flatten untuk histogram
-# ============================
-flat_before = gray.flatten()
-flat_after  = contrast_gray.flatten()
+    # Gambar asli
+    plt.subplot(2, 2, 1)
+    plt.imshow(gambar_asli, cmap="gray", vmin=0, vmax=255)
+    plt.title("Gambar Asli")
+    plt.axis("off")
 
-# ============================
-# Tampilkan gambar & histogram
-# ============================
-fig, axes = plt.subplots(2, 2, figsize=(10,8))
+    # Gambar setelah kontras
+    plt.subplot(2, 2, 2)
+    plt.imshow(gambar_kontras, cmap="gray", vmin=0, vmax=255)
+    plt.title(f"Setelah Kontras (G={G}, P={P})")
+    plt.axis("off")
 
-# Gambar asli
-axes[0,0].imshow(gray, cmap="gray", vmin=0, vmax=255)
-axes[0,0].set_title("Gambar Asli")
-axes[0,0].axis("off")
+    # Histogram sebelum
+    plt.subplot(2, 2, 3)
+    plt.bar(range(256), hist_asli, color="gray")
+    plt.title("Histogram Sebelum")
 
-# Histogram asli
-axes[0,1].bar(range(256), [np.count_nonzero(flat_before == i) for i in range(256)], color="blue")
-axes[0,1].set_title("Histogram Sebelum Kontras")
-axes[0,1].set_xlabel("Tingkat Warna (0–255)")
-axes[0,1].set_ylabel("Frekuensi")
+    # Histogram sesudah
+    plt.subplot(2, 2, 4)
+    plt.bar(range(256), hist_kontras, color="gray")
+    plt.title("Histogram Sesudah")
 
-# Gambar sesudah kontras
-axes[1,0].imshow(contrast_gray, cmap="gray", vmin=0, vmax=255)
-axes[1,0].set_title("Gambar Sesudah Kontras")
-axes[1,0].axis("off")
+    plt.tight_layout()
+    plt.show()
 
-# Histogram sesudah kontras
-axes[1,1].bar(range(256), [np.count_nonzero(flat_after == i) for i in range(256)], color="orange")
-axes[1,1].set_title("Histogram Sesudah Kontras")
-axes[1,1].set_xlabel("Tingkat Warna (0–255)")
-axes[1,1].set_ylabel("Frekuensi")
+# =========================
+# Program utama
+# =========================
+def main():
+    # 1. Baca gambar
+    nama_file = "kucing8x8.bmp"
+    gambar_rgb = plt.imread(nama_file)
 
-plt.tight_layout()
-plt.show()
+    # 2. Konversi ke grayscale
+    gambar_asli = konversi_ke_grayscale(gambar_rgb)
 
-# ============================
-# Cetak nilai grayscale
-# ============================
-print("Nilai Grayscale Asli:")
-print(gray)
+    # 3. Input nilai G dan P
+    try:
+        G = float(input("Masukkan koefisien kontras (G, contoh: 1.5): "))
+    except:
+        G = 1.5
+        print("Input tidak valid, gunakan G=1.5")
 
-print("\nNilai Grayscale Setelah Peningkatan Kontras:")
-print(contrast_gray)
+    try:
+        P = int(input("Masukkan pusat kontras (P, contoh: 128): "))
+    except:
+        P = 128
+        print("Input tidak valid, gunakan P=128")
+
+    # 4. Ubah kontras
+    gambar_kontras = ubah_kontras(gambar_asli, G, P)
+
+    # 5. Hitung histogram
+    hist_asli = hitung_histogram(gambar_asli)
+    hist_kontras = hitung_histogram(gambar_kontras)
+
+    # 6. Tampilkan hasil visual
+    tampilkan(gambar_asli, gambar_kontras, hist_asli, hist_kontras, G, P)
+
+    # 7. Tampilkan matriks nilai
+    print("\n=== Matriks Nilai Piksel Sebelum (Ki) ===")
+    for baris in gambar_asli:
+        print(baris)
+
+    print(f"\n=== Matriks Nilai Piksel Sesudah (Ko = {G}(Ki - {P}) + {P}) ===")
+    for baris in gambar_kontras:
+        print(baris)
+
+if __name__ == "__main__":
+    main()

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 # Baca citra
-img = mpimg.imread(r"C:\Tugas-PengolahanCitraDigital\Tugas-PengolahanCitraDigital\Tugas 3\trial.bmp")
+img = mpimg.imread(r"Tugas 3\trial.bmp")
   # ganti dengan nama file kamu
 
 h, w = img.shape[0], img.shape[1]

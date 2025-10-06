@@ -51,7 +51,7 @@ def scale_image(pixels, Sh, Sv):
 # MAIN PROGRAM
 # ======================
 if __name__ == "__main__":
-    input_file = "trial.bmp"   # ganti sesuai nama file
+    input_file = "Tugas 3/trial.bmp"   # ganti sesuai nama file
     pixels = read_image(input_file)
 
     # scaling
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     scaled_down = scale_image(pixels, Sh=1, Sv=0.5)  # zoom out 0.5x
 
     # simpan hasil
-    save_image("scaled_up_" + input_file, scaled_up)
-    save_image("scaled_down_" + input_file, scaled_down)
+    save_image("Tugas 3/scaled_up_trial.bmp", scaled_up)
+    save_image("Tugas 3/scaled_down_trial.bmp", scaled_down)
 
     print("Penskalaan selesai. File hasil disimpan.")
