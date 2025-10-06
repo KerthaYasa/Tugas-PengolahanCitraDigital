@@ -1,34 +1,49 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
+# ============================
 # Baca citra
-img = mpimg.imread(r"Tugas 3\trial.bmp")
-  # ganti dengan nama file kamu
+# ============================
+img = mpimg.imread(r"Tugas 3\trial.bmp")  # ganti sesuai lokasi gambar
 
-h, w = img.shape[0], img.shape[1]
+# Pastikan gambar dalam bentuk list of list
+img = img.tolist()
 
-# Buat array kosong untuk hasil
-flip_h = np.zeros_like(img)   # horizontal
-flip_v = np.zeros_like(img)   # vertical
-flip_hv = np.zeros_like(img)  # kombinasi
+# Tentukan tinggi (h) dan lebar (w)
+h = len(img)
+w = len(img[0])
 
+# ============================
+# Siapkan array kosong manual
+# ============================
+# Struktur: list of list yang meniru array 2D
+flip_h  = [[None for _ in range(w)] for _ in range(h)]  # horizontal
+flip_v  = [[None for _ in range(w)] for _ in range(h)]  # vertical
+flip_hv = [[None for _ in range(w)] for _ in range(h)]  # kombinasi
+
+# ============================
+# Proses pencerminan manual
+# ============================
 for y in range(h):
     for x in range(w):
-        # rumus dari gambar
+        # --- Horizontal ---
         x_h = w - 1 - x
         y_h = y
-        flip_h[y_h, x_h] = img[y, x]
+        flip_h[y_h][x_h] = img[y][x]
 
+        # --- Vertikal ---
         x_v = x
         y_v = h - 1 - y
-        flip_v[y_v, x_v] = img[y, x]
+        flip_v[y_v][x_v] = img[y][x]
 
+        # --- Kombinasi ---
         x_hv = w - 1 - x
         y_hv = h - 1 - y
-        flip_hv[y_hv, x_hv] = img[y, x]
+        flip_hv[y_hv][x_hv] = img[y][x]
 
+# ============================
 # Tampilkan hasil
+# ============================
 fig, axs = plt.subplots(1, 4, figsize=(16, 6))
 
 axs[0].imshow(img)

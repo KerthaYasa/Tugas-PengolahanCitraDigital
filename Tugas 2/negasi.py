@@ -1,42 +1,50 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import numpy as np
 
 # ============================
-# Input gambar dari folder
+# 1. Baca Gambar
 # ============================
-img = mpimg.imread("Tugas 2/kucing8x8.bmp")  # ganti sesuai nama file
+img = mpimg.imread("Tugas 2/kucing8x8.bmp")  # Ganti dengan file kamu
 
-# Jika gambar RGB, ambil rata-rata channel
-if img.ndim == 3:
-    gray = img.mean(axis=2)
+# Ubah ke grayscale (jika RGB)
+if len(img.shape) == 3:  # gambar RGB
+    gray = []
+    for row in img:
+        gray_row = []
+        for pixel in row:
+            # pixel = [R, G, B]
+            avg = sum(pixel) / len(pixel)
+            gray_row.append(avg)
+        gray.append(gray_row)
 else:
-    gray = img
+    gray = img.tolist()
 
-# Skala ke 0–255 jika perlu
-if gray.max() <= 1.0:
-    gray = gray * 255
-
-gray = gray.astype(int)
+# Skala ke 0–255 jika gambar bernilai 0–1
+max_val = max(max(row) for row in gray)
+if max_val <= 1.0:
+    gray = [[int(pixel * 255) for pixel in row] for row in gray]
+else:
+    gray = [[int(pixel) for pixel in row] for row in gray]
 
 # ============================
-# Konstanta untuk negatif
+# 2. Terapkan Rumus Negatif
 # ============================
 Kmax = 255
+negative_gray = [[Kmax - pixel for pixel in row] for row in gray]
 
 # ============================
-# Terapkan rumus negatif: Ko = Kmax - Ki
+# 3. Siapkan Data Histogram
 # ============================
-negative_gray = Kmax - gray
+# Flatten gambar jadi satu list panjang
+flat_before = [pixel for row in gray for pixel in row]
+flat_after  = [pixel for row in negative_gray for pixel in row]
+
+# Hitung frekuensi kemunculan tiap nilai 0–255
+hist_before = [flat_before.count(i) for i in range(256)]
+hist_after  = [flat_after.count(i) for i in range(256)]
 
 # ============================
-# Flatten untuk histogram
-# ============================
-flat_before = gray.flatten()
-flat_after  = negative_gray.flatten()
-
-# ============================
-# Tampilkan gambar & histogram
+# 4. Tampilkan Semua Hasil
 # ============================
 fig, axes = plt.subplots(2, 2, figsize=(10,8))
 
@@ -46,7 +54,7 @@ axes[0,0].set_title("Gambar Asli (Grayscale)")
 axes[0,0].axis("off")
 
 # Histogram asli
-axes[0,1].bar(range(256), [np.count_nonzero(flat_before == i) for i in range(256)], color="blue")
+axes[0,1].bar(range(256), hist_before, color="blue")
 axes[0,1].set_title("Histogram Asli")
 axes[0,1].set_xlabel("Tingkat Warna (0–255)")
 axes[0,1].set_ylabel("Frekuensi")
@@ -57,7 +65,7 @@ axes[1,0].set_title("Gambar Negatif")
 axes[1,0].axis("off")
 
 # Histogram negatif
-axes[1,1].bar(range(256), [np.count_nonzero(flat_after == i) for i in range(256)], color="orange")
+axes[1,1].bar(range(256), hist_after, color="orange")
 axes[1,1].set_title("Histogram Negatif")
 axes[1,1].set_xlabel("Tingkat Warna (0–255)")
 axes[1,1].set_ylabel("Frekuensi")
@@ -66,10 +74,12 @@ plt.tight_layout()
 plt.show()
 
 # ============================
-# Cetak nilai grayscale
+# 5. Cetak Nilai Grayscale
 # ============================
 print("Nilai Grayscale Asli:")
-print(gray)
+for row in gray:
+    print(row)
 
 print("\nNilai Grayscale Setelah Negatif:")
-print(negative_gray)
+for row in negative_gray:
+    print(row)

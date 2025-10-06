@@ -1,2 +1,2 @@
 
-# 1. BACA GAMBAR
+    print("Penskalaan selesai. File hasil disimpan.")
