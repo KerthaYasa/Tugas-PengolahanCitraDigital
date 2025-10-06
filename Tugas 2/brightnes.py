@@ -1,82 +1,121 @@
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import numpy as np
 
-# ============================
-# Input gambar dari folder
-# ============================
-# Ganti dengan nama file gambarmu (misal: "gambar.png")
-img = mpimg.imread("Tugas 2/kucing8x8.bmp")
+# =========================
+# Fungsi bantu
+# =========================
+def batas_nilai(nilai):
+    """Membatasi nilai piksel agar tetap antara 0 dan 255."""
+    if nilai < 0:
+        return 0
+    elif nilai > 255:
+        return 255
+    else:
+        return int(nilai)
 
-# Jika gambar RGB, ubah ke grayscale dengan rata-rata channel
-if img.ndim == 3:
-    gray = img.mean(axis=2)
-else:
-    gray = img  # kalau sudah grayscale
+def konversi_ke_grayscale(gambar):
+    # Jika gambar sudah grayscale (2 dimensi)
+    if len(gambar.shape) == 2:
+        return gambar.tolist()
 
-# Skala ke 0–255 jika perlu (matplotlib sering baca float 0–1)
-if gray.max() <= 1.0:
-    gray = gray * 255
+    tinggi, lebar, _ = gambar.shape
+    hasil = []
+    for y in range(tinggi):
+        baris = []
+        for x in range(lebar):
+            r, g, b = gambar[y][x][:3]
+            # Jika gambar dalam rentang 0–1 (float), ubah ke 0–255
+            if r <= 1 and g <= 1 and b <= 1:
+                gray = int((r + g + b) / 3 * 255)
+            else:
+                gray = int((r + g + b) / 3)
+            baris.append(gray)
+        hasil.append(baris)
+    return hasil
 
-gray = gray.astype(int)
+def tambah_brightness(gambar, nilai_tambah):
+    tinggi = len(gambar)
+    lebar = len(gambar[0])
+    hasil = []
 
-# ============================
-# Konstanta brightness (C)
-# ============================
-C = 50
+    for y in range(tinggi):
+        baris = []
+        for x in range(lebar):
+            nilai_baru = batas_nilai(gambar[y][x] + nilai_tambah)
+            baris.append(nilai_baru)
+        hasil.append(baris)
+    return hasil
 
-# ============================
-# Fungsi clip agar tetap 0–255
-# ============================
-def clip(value):
-    return max(0, min(255, value))
+def hitung_histogram(gambar):
+    histogram = [0] * 256
+    for baris in gambar:
+        for piksel in baris:
+            histogram[int(piksel)] += 1
+    return histogram
 
-# ============================
-# Terapkan rumus Ko = Ki + C
-# ============================
-bright_gray = np.vectorize(lambda v: clip(v + C))(gray)
+def tampilkan_hasil(gambar_asli, gambar_baru, hist_asli, hist_baru, nilai_tambah):
+    plt.figure(figsize=(10, 6))
 
-# ============================
-# Flatten untuk histogram
-# ============================
-flat_before = gray.flatten()
-flat_after  = bright_gray.flatten()
+    # Gambar asli
+    plt.subplot(2, 2, 1)
+    plt.imshow(gambar_asli, cmap="gray", vmin=0, vmax=255)
+    plt.title("Gambar Asli")
+    plt.axis("off")
 
-# ============================
-# Tampilkan gambar & histogram
-# ============================
-fig, axes = plt.subplots(2, 2, figsize=(10,8))
+    # Gambar setelah ditambah brightness
+    plt.subplot(2, 2, 2)
+    plt.imshow(gambar_baru, cmap="gray", vmin=0, vmax=255)
+    plt.title(f"Gambar + Brightness ({nilai_tambah})")
+    plt.axis("off")
 
-# Gambar asli
-axes[0,0].imshow(gray, cmap="gray", vmin=0, vmax=255)
-axes[0,0].set_title("Gambar Asli")
-axes[0,0].axis("off")
+    # Histogram asli
+    plt.subplot(2, 2, 3)
+    plt.bar(range(256), hist_asli, color="gray")
+    plt.title("Histogram Asli")
 
-# Histogram asli
-axes[0,1].bar(range(256), [np.count_nonzero(flat_before == i) for i in range(256)], color="blue")
-axes[0,1].set_title("Histogram Sebelum Brightness")
-axes[0,1].set_xlabel("Tingkat Warna (0–255)")
-axes[0,1].set_ylabel("Frekuensi")
+    # Histogram baru
+    plt.subplot(2, 2, 4)
+    plt.bar(range(256), hist_baru, color="gray")
+    plt.title("Histogram Setelah Brightness")
 
-# Gambar sesudah brightness
-axes[1,0].imshow(bright_gray, cmap="gray", vmin=0, vmax=255)
-axes[1,0].set_title("Gambar Sesudah Brightness")
-axes[1,0].axis("off")
+    plt.tight_layout()
+    plt.show()
 
-# Histogram sesudah brightness
-axes[1,1].bar(range(256), [np.count_nonzero(flat_after == i) for i in range(256)], color="orange")
-axes[1,1].set_title("Histogram Sesudah Brightness")
-axes[1,1].set_xlabel("Tingkat Warna (0–255)")
-axes[1,1].set_ylabel("Frekuensi")
+# =========================
+# Program utama
+# =========================
+def main():
+    # 1. Baca gambar dari direktori lokal
+    nama_file = "kucing8x8.bmp"
+    gambar_asli_rgb = plt.imread(nama_file)
 
-plt.tight_layout()
-plt.show()
+    # 2. Ubah ke grayscale
+    gambar_asli = konversi_ke_grayscale(gambar_asli_rgb)
 
-# ============================
-# Cetak nilai grayscale
-# ============================
-print("Nilai Grayscale Asli:")
-print(gray)
+    # 3. Input nilai brightness dari pengguna
+    try:
+        nilai_tambah = int(input("Masukkan nilai brightness (+terang / -gelap): "))
+    except:
+        nilai_tambah = 50  # default jika input tidak valid
+        print("Input tidak valid, gunakan nilai default +50")
 
-print("\nNilai Grayscale Setelah Brightness +C:")
-print(bright_gray)
+    # 4. Tambah brightness
+    gambar_baru = tambah_brightness(gambar_asli, nilai_tambah)
+
+    # 5. Hitung histogram
+    hist_asli = hitung_histogram(gambar_asli)
+    hist_baru = hitung_histogram(gambar_baru)
+
+    # 6. Tampilkan hasil visual
+    tampilkan_hasil(gambar_asli, gambar_baru, hist_asli, hist_baru, nilai_tambah)
+
+    # 7. Tampilkan matriks nilai piksel
+    print("\n=== Matriks Nilai Piksel Sebelum (Ki) ===")
+    for baris in gambar_asli:
+        print(baris)
+
+    print("\n=== Matriks Nilai Piksel Sesudah (Ko = Ki + C) ===")
+    for baris in gambar_baru:
+        print(baris)
+
+if __name__ == "__main__":
+    main()
