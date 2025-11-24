@@ -8,12 +8,8 @@ nama_file = "trial.bmp"
 img = mpimg.imread(nama_file)
 
 # Jika float [0,1], ubah ke 0-255
-if img[0][0][0] <= 1:
-    tinggi = len(img)
-    lebar = len(img[0])
-    for y in range(tinggi):
-        for x in range(lebar):
-            img[y][x] = [int(channel*255) for channel in img[y][x]]
+if img.dtype == float or img[0][0][0] <= 1:
+    img = (img * 255).astype(int)
 
 # ===============================
 # 2. KONVERSI GRAYSCALE (SESUAI PDF)
@@ -32,7 +28,9 @@ def rgb_to_grayscale(img, method="weighted"):
         baris = []
         for x in range(lebar):
             pixel = img[y][x]
-            Ri, Gi, Bi = pixel[:3]
+            Ri = int(pixel[0])
+            Gi = int(pixel[1])
+            Bi = int(pixel[2])
             
             if method == "average":
                 # Rumus PDF: Ko = (Ri + Gi + Bi) / 3
@@ -43,6 +41,8 @@ def rgb_to_grayscale(img, method="weighted"):
             else:
                 raise ValueError("Pilih method 'average' atau 'weighted'")
             
+            # Clipping ke range 0-255
+            Ko = max(0, min(255, Ko))
             baris.append(Ko)
         gray.append(baris)
     return gray
@@ -58,6 +58,8 @@ def hitung_histogram(gambar):
     hist = [0]*256
     for baris in gambar:
         for piksel in baris:
+            # Pastikan piksel dalam range 0-255
+            piksel = max(0, min(255, int(piksel)))
             hist[piksel] += 1
     return hist
 
@@ -69,7 +71,13 @@ tinggi = len(img)
 lebar = len(img[0])
 for y in range(tinggi):
     for x in range(lebar):
-        r, g, b = img[y][x][:3]
+        r = int(img[y][x][0])
+        g = int(img[y][x][1])
+        b = int(img[y][x][2])
+        # Clipping
+        r = max(0, min(255, r))
+        g = max(0, min(255, g))
+        b = max(0, min(255, b))
         hist_r[r] += 1
         hist_g[g] += 1
         hist_b[b] += 1
