@@ -4,7 +4,7 @@ import matplotlib.image as mpimg
 # ===============================
 # 1. BACA GAMBAR
 # ===============================
-nama_file = "trial.bmp"  # ganti sesuai file Anda
+nama_file = "trial.bmp"
 img = mpimg.imread(nama_file)
 
 # Jika float [0,1], ubah ke 0-255
@@ -16,13 +16,13 @@ if img[0][0][0] <= 1:
             img[y][x] = [int(channel*255) for channel in img[y][x]]
 
 # ===============================
-# 2. KONVERSI GRAYSCALE
+# 2. KONVERSI GRAYSCALE (SESUAI PDF)
 # ===============================
 def rgb_to_grayscale(img, method="weighted"):
     """
-    Konversi citra RGB ke grayscale (list of list)
-    method="average": (R+G+B)/3
-    method="weighted": 0.299*R + 0.587*G + 0.114*B
+    Konversi RGB ke grayscale sesuai PDF halaman 15
+    method="average": (Ri + Gi + Bi)/3
+    method="weighted": 0.299*Ri + 0.587*Gi + 0.144*Bi (SESUAI PDF)
     """
     tinggi = len(img)
     lebar = len(img[0])
@@ -32,14 +32,18 @@ def rgb_to_grayscale(img, method="weighted"):
         baris = []
         for x in range(lebar):
             pixel = img[y][x]
-            r, g, b = pixel[:3]
+            Ri, Gi, Bi = pixel[:3]
+            
             if method == "average":
-                nilai = int((r + g + b)/3)
+                # Rumus PDF: Ko = (Ri + Gi + Bi) / 3
+                Ko = int((Ri + Gi + Bi) / 3)
             elif method == "weighted":
-                nilai = int(0.299*r + 0.587*g + 0.114*b)
+                # Rumus PDF: Ko = 0.299*Ri + 0.587*Gi + 0.144*Bi
+                Ko = int(0.299*Ri + 0.587*Gi + 0.144*Bi)
             else:
                 raise ValueError("Pilih method 'average' atau 'weighted'")
-            baris.append(nilai)
+            
+            baris.append(Ko)
         gray.append(baris)
     return gray
 
@@ -57,7 +61,7 @@ def hitung_histogram(gambar):
             hist[piksel] += 1
     return hist
 
-# Histogram
+# Histogram RGB
 hist_r = [0]*256
 hist_g = [0]*256
 hist_b = [0]*256
@@ -90,7 +94,7 @@ axs[0,1].axis("off")
 
 # Grayscale Weighted
 axs[0,2].imshow(gray_weighted, cmap="gray", vmin=0, vmax=255)
-axs[0,2].set_title("Grayscale Weighted (NTSC)")
+axs[0,2].set_title("Grayscale Weighted (PDF)")
 axs[0,2].axis("off")
 
 # Histogram RGB
