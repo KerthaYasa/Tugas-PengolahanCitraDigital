@@ -43,6 +43,8 @@ wb = -1
 hasil = []
 
 for y in range(h):
+
+for y in range(h):
     baris = []
     for x in range(w):
 
