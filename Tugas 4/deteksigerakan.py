@@ -17,41 +17,51 @@ Interpretasi hasil:
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-# ====== Bagian 1: Membaca dua citra ======
+# ===============================
+# BAGIAN 1: BACA DUA CITRA
+# ===============================
 try:
-    imgA = mpimg.imread('trial3.png')    # frame pertama
-    imgB = mpimg.imread('trial4.png')   # frame kedua
-except FileNotFoundError:
-    print("❌ File gambar tidak ditemukan! Periksa nama atau lokasinya.")
+    imgA = mpimg.imread("trial3.png")   # Citra posisi awal
+    imgB = mpimg.imread("trial4.png")   # Citra posisi akhir
+except:
+    print("❌ File tidak ditemukan!")
     exit()
 
-# Pastikan ukuran sama (ambil ukuran minimum)
-height = min(len(imgA), len(imgB))
-width = min(len(imgA[0]), len(imgB[0]))
+# Pastikan ukuran sama
+h = min(len(imgA), len(imgB))
+w = min(len(imgA[0]), len(imgB[0]))
 
-# ====== Bagian 2: Bobot ======
+# ===============================
+# BAGIAN 2: BOBOT SESUAI BUKU
+# ===============================
 wa = 1
 wb = -1
 
-# ====== Bagian 3: Pengurangan antar citra ======
+# ===============================
+# BAGIAN 3: OPERASI PENGURANGAN C(x,y)
+# ===============================
 hasil = []
-for y in range(height):
+
+for y in range(h):
     baris = []
-    for x in range(width):
-        pixelA = imgA[y][x]
-        pixelB = imgB[y][x]
+    for x in range(w):
 
-        # konversi grayscale sederhana (rata-rata RGB)
-        grayA = (float(pixelA[0]) + float(pixelA[1]) + float(pixelA[2])) / 3
-        grayB = (float(pixelB[0]) + float(pixelB[1]) + float(pixelB[2])) / 3
+        # Ambil piksel A dan B
+        rA, gA, bA = imgA[y][x][:3]
+        rB, gB, bB = imgB[y][x][:3]
 
-        # rumus utama: C(x,y) = wa*A(x,y) + wb*B(x,y)
-        diff = wa * grayA + wb * grayB
+        # Konversi ke grayscale (rata-rata 3 komponen)
+        grayA = (float(rA) + float(gA) + float(bA)) / 3
+        grayB = (float(rB) + float(gB) + float(bB)) / 3
 
-        # normalisasi agar terlihat jelas dalam rentang 0–1
-        diff_norm = (diff + 1) / 2   # geser dari -1..1 ke 0..1
+        # Rumus utama!
+        diff = wa * grayA + wb * grayB       # = grayA - grayB
 
-        # ubah ke RGB grayscale
+        # NORMALISASI SEDERHANA 0..1 (agar bisa ditampilkan)
+        # diff bisa negatif → geser ke rentang 0..1
+        diff_norm = (diff + 1) / 2           # ubah dari -1..1 ke 0..1
+
+        # simpan sebagai grayscale RGB
         baris.append([diff_norm, diff_norm, diff_norm])
     hasil.append(baris)
 
@@ -77,9 +87,3 @@ plt.axis("off")
 
 plt.tight_layout()
 plt.show()
-
-# ====== Bagian 5: Informasi tambahan ======
-print("Ukuran citra:", height, "x", width)
-print("Contoh nilai piksel [0][0]:")
-print("A =", imgA[0][0])
-print("B =", imgB[0][0])
