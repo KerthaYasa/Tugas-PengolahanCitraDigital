@@ -1,18 +1,17 @@
 """
-DETEKSI GERAKAN (MOTION DETECTION)
------------------------------------
-Rumus dasar:
-C(x,y) = wa * A(x,y) + wb * B(x,y)
-dengan wa = 1 dan wb = -1
+DETEKSI GERAKAN SESUAI BUKU
+===========================
 
-Tujuan:
-Menampilkan posisi awal dan posisi akhir dari objek yang bergerak.
-- Warna gelap menunjukkan posisi awal (objek lama)
-- Warna terang menunjukkan posisi akhir (objek baru)
+Rumus:
+    C(x,y) = A(x,y) - B(x,y)
+Atau menggunakan bobot:
+    C(x,y) = wa * A(x,y) + wb * B(x,y)
+    (wa = 1, wb = -1)
 
-Library yang digunakan:
-- matplotlib (untuk membaca & menampilkan gambar)
-Tanpa numpy.
+Interpretasi hasil:
+- Nilai 0  → tidak ada perubahan / tidak bergerak
+- Nilai < 0 (gelap) → posisi lama (objek di citra A)
+- Nilai > 0 (terang) → posisi baru (objek di citra B)
 """
 
 import matplotlib.pyplot as plt
@@ -56,20 +55,25 @@ for y in range(height):
         baris.append([diff_norm, diff_norm, diff_norm])
     hasil.append(baris)
 
-# ====== Bagian 4: Visualisasi ======
-fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+# ===============================
+# BAGIAN 4: TAMPILKAN HASIL
+# ===============================
+plt.figure(figsize=(12, 4))
 
-axes[0].imshow(imgA, cmap='gray')
-axes[0].set_title('Citra A (posisi awal)')
-axes[0].axis('off')
+plt.subplot(1, 3, 1)
+plt.title("Citra A (Posisi Awal)")
+plt.imshow(imgA, cmap="gray")
+plt.axis("off")
 
-axes[1].imshow(imgB, cmap='gray')
-axes[1].set_title('Citra B (posisi akhir)')
-axes[1].axis('off')
+plt.subplot(1, 3, 2)
+plt.title("Citra B (Posisi Akhir)")
+plt.imshow(imgB, cmap="gray")
+plt.axis("off")
 
-axes[2].imshow(hasil, cmap='gray')
-axes[2].set_title('Hasil Deteksi Gerakan\nHitam=Posisi Awal | Putih=Posisi Akhir')
-axes[2].axis('off')
+plt.subplot(1, 3, 3)
+plt.title("Hasil Deteksi Gerakan\nHitam=Awal | Putih=Akhir")
+plt.imshow(hasil, cmap="gray")
+plt.axis("off")
 
 plt.tight_layout()
 plt.show()
