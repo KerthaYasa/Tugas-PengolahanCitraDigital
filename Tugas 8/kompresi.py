@@ -10,13 +10,18 @@ class Node:
         self.code = ''
 
 def get_huffman_codes(node, current_code='', codes=None):
+    # >>> LOGIKA: Traversal (penelusuran) Pohon Huffman secara rekursif
+    # >>> Tujuannya: Jika ke kiri tambah string '0', jika ke kanan tambah string '1'
     if codes is None:
         codes = {}
     new_code = current_code + str(node.code)
+    
     if node.left:
         get_huffman_codes(node.left, new_code, codes)
     if node.right:
         get_huffman_codes(node.right, new_code, codes)
+    
+    # >>> LOGIKA: Base Case (Titik Henti). Jika tidak punya anak (daun), simpan kodenya.
     if not node.left and not node.right:
         codes[node.symbol] = new_code
     return codes
@@ -26,9 +31,11 @@ def manual_grayscale(image_data):
     width = len(image_data[0])
     gray_pixels = []
     
+    # >>> LOGIKA: Cek tipe data, apakah float (0.0 - 1.0) atau integer (0 - 255)
     check_val = image_data[0][0][0]
     is_float = isinstance(check_val, float) or (1.0 >= check_val >= 0.0 and type(check_val) != int)
 
+    # >>> LOGIKA: Nested Loop (Perulangan bersarang) untuk mengakses setiap piksel (x, y)
     for y in range(height):
         row = []
         for x in range(width):
@@ -36,11 +43,14 @@ def manual_grayscale(image_data):
             g = image_data[y][x][1]
             b = image_data[y][x][2]
             
+            # >>> RUMUS: Normalisasi. Jika data 0-1, dikali 255 agar jadi integer 0-255
             if is_float:
                 r = int(r * 255)
                 g = int(g * 255)
                 b = int(b * 255)
             
+            # >>> RUMUS: Konversi Grayscale (Metode Rata-rata Sederhana)
+            # >>> Rumus: (Merah + Hijau + Biru) dibagi 3
             val = int((r + g + b) / 3)
             row.append(val)
         gray_pixels.append(row)
@@ -48,6 +58,7 @@ def manual_grayscale(image_data):
     return gray_pixels, width, height
 
 def flatten_pixels(matrix):
+    # >>> LOGIKA: Mengubah array 2 Dimensi (Baris, Kolom) menjadi 1 Dimensi (List panjang)
     flat = []
     for row in matrix:
         for val in row:
@@ -55,11 +66,12 @@ def flatten_pixels(matrix):
     return flat
 
 def calculate_bits_needed(n):
+    # >>> LOGIKA: Menghitung berapa bit yang dibutuhkan untuk menampung angka n
     if n <= 1: return 1
     bits = 0
     val = 1
     while val < n:
-        val *= 2
+        val *= 2  # >>> RUMUS: Pangkat 2 (biner)
         bits += 1
     return bits
 
@@ -67,6 +79,8 @@ def compress_huffman(flat_pixels):
     print("1. STATISTICAL COMPRESSION (HUFFMAN)")
     
     total_pixels = len(flat_pixels)
+    
+    # >>> LOGIKA: Menghitung Frekuensi kemunculan setiap nilai piksel (Histogram)
     counts = {}
     for p in flat_pixels:
         if p in counts:
@@ -74,12 +88,16 @@ def compress_huffman(flat_pixels):
         else:
             counts[p] = 1
     
+    # >>> LOGIKA: Membuat Node awal (Daun)
     nodes = []
     for symbol, count in counts.items():
+        # >>> RUMUS: Probabilitas = Jumlah Kemunculan / Total Piksel
         nodes.append(Node(count / total_pixels, symbol))
     
     nodes.sort(key=lambda x: x.prob)
     
+    # >>> LOGIKA: Membangun Pohon Huffman (Bottom-Up)
+    # >>> Ambil 2 terendah, gabung jadi 1, masukkan lagi, ulangi sampai sisa 1 node.
     while len(nodes) > 1:
         left = nodes.pop(0)
         right = nodes.pop(0)
@@ -87,17 +105,21 @@ def compress_huffman(flat_pixels):
         left.code = '0'
         right.code = '1'
         
+        # >>> RUMUS: Probabilitas Parent = Probabilitas Kiri + Probabilitas Kanan
         new_node = Node(left.prob + right.prob, left=left, right=right)
         nodes.append(new_node)
         nodes.sort(key=lambda x: x.prob)
         
     codes = get_huffman_codes(nodes[0])
     
+    # >>> RUMUS: Menghitung total bit setelah kompresi
     compressed_bits = 0
     for p in flat_pixels:
-        compressed_bits += len(codes[p])
+        compressed_bits += len(codes[p]) # Panjang bit huffman code dikali kemunculan
         
-    original_bits = total_pixels * 8
+    original_bits = total_pixels * 8 # Asumsi awal 8 bit per piksel
+    
+    # >>> RUMUS: Rasio Kompresi dalam Persen
     ratio = 100 - ((compressed_bits / original_bits) * 100)
     
     print(f"Ukuran Asli: {original_bits} bit")
@@ -115,25 +137,31 @@ def compress_rle(flat_pixels):
     prev = flat_pixels[0]
     count = 1
     
+    # >>> LOGIKA: Algoritma RLE
+    # >>> Bandingkan piksel sekarang (curr) dengan sebelumnya (prev).
     for i in range(1, len(flat_pixels)):
         curr = flat_pixels[i]
         if curr == prev:
+            # >>> LOGIKA: Jika sama, hanya tambah hitungan (count)
             count += 1
         else:
+            # >>> LOGIKA: Jika beda, simpan data (nilai, jumlah) dan reset hitungan
             encoded.append((prev, count))
             prev = curr
             count = 1
     encoded.append((prev, count))
     
     original_size = len(flat_pixels)
-    compressed_size = len(encoded) * 2
+    # >>> RUMUS: Ukuran terkompresi. Dikali 2 karena menyimpan pasangan (nilai, jumlah)
+    compressed_size = len(encoded) * 2 
     
+    # >>> RUMUS: Rasio Kompresi
     ratio = 100 - ((compressed_size / original_size) * 100)
     
     print(f"Ukuran Asli (piksel): {original_size}")
     print(f"Ukuran RLE (data): {compressed_size}")
     print(f"Ratio Kompresi: {ratio:.2f} %")
-    print(f"Sampel Data RLE: {encoded[:5]} ...")
+    print(f"Sampel Data RLE: {encoded} ...")
     print("-" * 30)
 
 def compress_quantizing(matrix_pixels, width, height, target_levels=16):
@@ -142,10 +170,12 @@ def compress_quantizing(matrix_pixels, width, height, target_levels=16):
     flat = flatten_pixels(matrix_pixels)
     total_pixels = len(flat)
     
+    # >>> LOGIKA: Membuat Histogram manual
     histogram = [0] * 256
     for p in flat:
         histogram[p] += 1
         
+    # >>> RUMUS: Menghitung target piksel per kelompok (agar pembagian rata)
     pixels_per_cluster = total_pixels / target_levels
     print(f"Target piksel per kelompok (P/n): {pixels_per_cluster:.2f}")
     
@@ -153,6 +183,8 @@ def compress_quantizing(matrix_pixels, width, height, target_levels=16):
     current_cluster = 0
     current_count = 0
     
+    # >>> LOGIKA: Algoritma Pengelompokan (Clustering)
+    # >>> Mengelompokkan warna 0-255 ke dalam 16 level (target_levels)
     for val in range(256):
         count = histogram[val]
         if count == 0:
@@ -161,29 +193,38 @@ def compress_quantizing(matrix_pixels, width, height, target_levels=16):
         mapping[val] = current_cluster
         current_count += count
         
+        # >>> LOGIKA: Jika kuota kluster penuh, pindah ke kluster berikutnya
         if current_count >= pixels_per_cluster:
             if current_cluster < target_levels - 1:
                 current_cluster += 1
                 current_count = 0
 
     cluster_representatives = {}
+    # >>> RUMUS: Menentukan nilai visual baru.
+    # >>> Contoh: Jika 16 level, step = 255/15 = 17. Nilainya: 0, 17, 34, ...
     step = 255 / (target_levels - 1)
     for i in range(target_levels):
         cluster_representatives[i] = int(i * step)
                 
     new_matrix = []
+    # >>> LOGIKA: Rekonstruksi Citra dengan nilai baru
     for r in range(height):
         new_row = []
         for c in range(width):
             old_val = matrix_pixels[r][c]
-            cluster_val = mapping.get(old_val, target_levels - 1)
-            visual_val = cluster_representatives[cluster_val]
+            cluster_val = mapping.get(old_val, target_levels - 1) # Ambil ID kluster
+            visual_val = cluster_representatives[cluster_val]     # Ambil nilai visual
             new_row.append(visual_val)
         new_matrix.append(new_row)
         
     original_bits = total_pixels * 8
+    
+    # >>> LOGIKA & RUMUS: Menghitung bit depth baru
+    # >>> Misal target 16 level, maka butuh 4 bit (karena 2^4 = 16)
     new_bit_depth = calculate_bits_needed(target_levels)
     compressed_bits = total_pixels * new_bit_depth
+    
+    # >>> RUMUS: Rasio Kompresi
     ratio = 100 - ((compressed_bits / original_bits) * 100)
     
     print(f"Bit depth baru: {new_bit_depth}")
@@ -201,9 +242,11 @@ def main():
         print(f"File {filename} tidak ditemukan.")
         return
 
+    # >>> LOGIKA: Pengecekan apakah gambar RGB (3 channel) atau sudah grayscale
     if len(img_data.shape) == 3:
         pixels, width, height = manual_grayscale(img_data)
     else:
+        # Jika sudah grayscale, tetap diproses agar format datanya seragam (list of lists int)
         height, width = img_data.shape
         pixels = []
         for r in range(height):
@@ -217,10 +260,12 @@ def main():
 
     flat_pixels = flatten_pixels(pixels)
     
+    # >>> LOGIKA: Pemanggilan Fungsi Kompresi
     compress_huffman(flat_pixels)
     compress_rle(flat_pixels)
     result_quant = compress_quantizing(pixels, width, height, target_levels=16)
     
+    # >>> LOGIKA: Visualisasi dengan Matplotlib
     plt.figure(figsize=(10, 5))
     
     plt.subplot(1, 2, 1)
