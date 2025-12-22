@@ -186,7 +186,6 @@ def compress_quantizing(matrix_pixels, width, height, target_levels=16):
     print(f"Ratio Kompresi (teoretis): {ratio:.2f} %")
     print("-" * 30)
     
-    # >>> MODIFIKASI: Mengembalikan compressed_bits juga agar bisa dipakai di main()
     return new_matrix, compressed_bits
 
 def main():
@@ -214,20 +213,46 @@ def main():
 
     flat_pixels = flatten_pixels(pixels)
     
-    # --- HITUNG UKURAN ASLI (Raw Data) ---
-    # Asumsi 8 bit per piksel untuk Grayscale
-    original_bits = (width * height) * 8
-    original_size_kb = (original_bits / 8) / 1024
+    # ========== INFO DIMENSI DAN UKURAN GAMBAR ==========
+    total_pixels = width * height
+    original_bits = total_pixels * 8  # 8 bit per pixel untuk grayscale
+    original_bytes = original_bits / 8
+    original_size_kb = original_bytes / 1024
+    
+    print("=" * 50)
+    print("INFORMASI GAMBAR ASLI")
+    print("=" * 50)
+    print(f"Dimensi Pixel: {width} x {height}")
+    print(f"Total Pixel: {total_pixels} pixel")
+    print(f"Bit per Pixel: 8 bit (Grayscale)")
+    print(f"Total Bit Gambar: {original_bits} bit")
+    print(f"Total Bytes: {original_bytes:.0f} bytes")
+    print(f"Ukuran Data: {original_size_kb:.2f} KB")
+    print("=" * 50)
+    print()
     
     # Proses Kompresi
     compress_huffman(flat_pixels)
     compress_rle(flat_pixels)
-    
-    # >>> MODIFIKASI: Menangkap dua return value (matriks dan ukuran bit)
     result_quant, quant_bits = compress_quantizing(pixels, width, height, target_levels=16)
 
-    # --- HITUNG UKURAN TEORITIS SETELAH QUANTIZING ---
-    quant_size_kb = (quant_bits / 8) / 1024
+    # Info hasil kompresi quantizing
+    quant_bytes = quant_bits / 8
+    quant_size_kb = quant_bytes / 1024
+    
+    print()
+    print("=" * 50)
+    print("INFORMASI GAMBAR HASIL QUANTIZING")
+    print("=" * 50)
+    print(f"Dimensi Pixel: {width} x {height}")
+    print(f"Total Pixel: {total_pixels} pixel")
+    print(f"Bit per Pixel: 4 bit (16 levels)")
+    print(f"Total Bit Gambar: {quant_bits} bit")
+    print(f"Total Bytes: {quant_bytes:.0f} bytes")
+    print(f"Ukuran Data: {quant_size_kb:.2f} KB")
+    print(f"Penghematan: {original_size_kb - quant_size_kb:.2f} KB ({((original_bits - quant_bits) / original_bits * 100):.2f}%)")
+    print("=" * 50)
+    print()
 
     output_image_name = 'hasil_kompresi_quantized.png'
     plt.imsave(output_image_name, result_quant, cmap='gray', vmin=0, vmax=255)
@@ -237,29 +262,27 @@ def main():
     plt.figure(figsize=(12, 6))
     
     plt.subplot(1, 2, 1)
-    # >>> BARU: Menampilkan ukuran data asli (hasil hitungan manual)
     title_asli = (
         f"Citra Asli (Grayscale)\n"
-        f"Dimensi: {width}x{height}\n"
-        f"Ukuran Data: {original_size_kb:.2f} KB"
+        f"Dimensi: {width} x {height} = {total_pixels} pixel\n"
+        f"Bit: {original_bits} bit ({original_size_kb:.2f} KB)"
     )
-    plt.title(title_asli)
+    plt.title(title_asli, fontsize=10)
     plt.imshow(pixels, cmap='gray', vmin=0, vmax=255)
     plt.axis('off')
     
     plt.subplot(1, 2, 2)
-    # >>> BARU: Menampilkan ukuran data setelah kompresi (hasil hitungan manual)
     title_hasil = (
         f"Hasil Kuantisasi (16 Level)\n"
-        f"Dimensi: {width}x{height}\n"
-        f"Ukuran Data: {quant_size_kb:.2f} KB"
+        f"Dimensi: {width} x {height} = {total_pixels} pixel\n"
+        f"Bit: {quant_bits} bit ({quant_size_kb:.2f} KB)"
     )
-    plt.title(title_hasil)
+    plt.title(title_hasil, fontsize=10)
     plt.imshow(result_quant, cmap='gray', vmin=0, vmax=255)
     plt.axis('off')
     
     output_plot_name = 'hasil_perbandingan_plot.png'
-    plt.savefig(output_plot_name)
+    plt.savefig(output_plot_name, dpi=150, bbox_inches='tight')
     print(f"[INFO] Plot perbandingan disimpan: {output_plot_name}")
     
     plt.tight_layout()
