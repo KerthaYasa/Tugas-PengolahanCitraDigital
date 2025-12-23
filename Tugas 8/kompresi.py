@@ -189,7 +189,7 @@ def compress_quantizing(matrix_pixels, width, height, target_levels=16):
     return new_matrix, compressed_bits
 
 def main():
-    filename = 'trial.png'
+    filename = 'soal1.jpg'
     
     try:
         img_data = mpimg.imread(filename)
